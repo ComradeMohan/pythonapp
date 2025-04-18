@@ -100,8 +100,14 @@ def main(course_name, slot, phone_number):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080") # Fixes potential memory issues
-
-    driver = webdriver.Chrome(options=options)
+ # Explicitly set Chrome binary location
+    options.binary_location = "/usr/bin/chromium"
+    
+    # Initialize WebDriver with explicit path
+    driver = webdriver.Chrome(
+        options=options,
+        service_args=['--verbose'],  # Add for debugging
+    )
     
     login(driver)
     go_to_enrollment_page(driver)
