@@ -1,6 +1,5 @@
-Flask
-twilio
+flask
 selenium
+twilio
 chromedriver-autoinstaller
-
 gunicorn

@@ -95,10 +95,11 @@ def check_for_course(driver, course_name):
 def main(course_name, slot, phone_number):
     # Initialize WebDriver
     options = Options()
-    options.add_argument("--headless")  # Run Chrome in headless mode (no GUI)
-    options.add_argument("--disable-gpu")  # Disable GPU acceleration
-    options.add_argument("--no-sandbox")  # Needed for cloud environments
-    options.add_argument("--disable-dev-shm-usage")  # Fixes potential memory issues
+    options.add_argument("--headless=new")  # Updated headless mode
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080") # Fixes potential memory issues
 
     driver = webdriver.Chrome(options=options)
     
