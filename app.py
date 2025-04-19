@@ -14,17 +14,16 @@ chromedriver_autoinstaller.install()
 app = Flask(__name__)
 
 # Function to send WhatsApp notification
-def send_whatsapp_notification(course_name, phone_number):
-    # Your Twilio credentials
-    account_sid = "TWILIO_ACCOUNT_SID"  # Replace with your Twilio Account SID
-    auth_token = "TWILIO_AUTH_TOKEN"    # Replace with your Twilio Auth Token
-    from_whatsapp_number = "whatsapp:+14155238886"  # Twilio sandbox WhatsApp number (or your own)
-    to_whatsapp_number = f"whatsapp:+91{phone_number}"  # Receiver's WhatsApp number
+def send_whatsapp_notification(course_name, phone_number, vacancies):
+    account_sid = "TWILIO_ACCOUNT_SID"  # Your Twilio Account SID
+    auth_token = "TWILIO_AUTH_TOKEN"   # Your Twilio Auth Token
+    from_whatsapp_number = "whatsapp:+14155238886"
+    to_whatsapp_number = f"whatsapp:+91{phone_number}"
 
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
-        body=f"The course {course_name} has been successfully selected. Please check your browser.",
+        body=f"The course {course_name} has been successfully selected. Vacancies available: {vacancies}. Please check your ARMS portal.",
         from_=from_whatsapp_number,
         to=to_whatsapp_number
     )
@@ -62,9 +61,7 @@ def select_slot(driver, slot_letter):
 
 # Function to check for the course in the table
 def check_for_course(driver, course_name):
-    time.sleep(1)  # Wait for courses to load after selecting the slot
-
-    course_found = False
+    time.sleep(1)
     rows = driver.find_elements(By.CSS_SELECTOR, "#tbltbodyslota tr")
 
     for row in rows:
@@ -77,19 +74,14 @@ def check_for_course(driver, course_name):
                 if vacancies > 0:
                     radio_button = row.find_element(By.CSS_SELECTOR, "input[type='radio']")
                     radio_button.click()
-
                     print(f"Course {course_name} selected. Vacancies available: {vacancies}")
-                    course_found = True
-                    return True  # Exit after finding and selecting the course
-
+                    return True, vacancies  # Return both True and the vacancies count
                 else:
                     print(f"Course '{course_name}' is found but has no vacancies.")
-                    course_found = True
-                    return False  # Course found but full
+                    return False, 0
 
-    if not course_found:
-        print(f"Course '{course_name}' not found.")
-        return False
+    print(f"Course '{course_name}' not found.")
+    return False, 0
 
 # Main function to check for the course and handle actions
 def main(course_name, slot, phone_number):
@@ -100,14 +92,8 @@ def main(course_name, slot, phone_number):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080") # Fixes potential memory issues
- # Explicitly set Chrome binary location
-    options.binary_location = "/usr/bin/chromium"
-    
-    # Initialize WebDriver with explicit path
-    driver = webdriver.Chrome(
-        options=options,
-        service_args=['--verbose'],  # Add for debugging
-    )
+
+    driver = webdriver.Chrome(options=options)
     
     login(driver)
     go_to_enrollment_page(driver)
@@ -118,10 +104,10 @@ def main(course_name, slot, phone_number):
         select_slot(driver, slot)  # Select the slot passed by user
 
         if driver.current_url == "https://arms.sse.saveetha.com/StudentPortal/Enrollment.aspx":
-            found = check_for_course(driver, course_name)
+            found, vacancies = check_for_course(driver, course_name)
             if found:
-                print(f"Course {course_name} found! Notifications will be sent.")
-                send_whatsapp_notification(course_name, phone_number)  # Send WhatsApp notification
+                print(f"Course {course_name} found! Notifications will be sent +91{phone_number} vacancies = {vacancies}")
+                send_whatsapp_notification(course_name, phone_number,vacancies)  # Send WhatsApp notification
                 break  # Exit loop if course is found
 
         refresh_count += 1  # Increment refresh count
