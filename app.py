@@ -73,8 +73,8 @@ def main(course_name, slot, phone_number):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
-
-    # Set the binary location for Render's Chromium
+    
+    # Set the path to the Chromium binary on Render's environment
     options.binary_location = "/opt/render/project/.chromium-browser/bin/chromium"
 
     driver = uc.Chrome(options=options)
@@ -97,6 +97,7 @@ def main(course_name, slot, phone_number):
         time.sleep(2)
 
     driver.quit()
+
 
 # Routes
 @app.route('/')
