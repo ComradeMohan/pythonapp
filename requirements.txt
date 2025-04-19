@@ -1,6 +1,8 @@
-flask
-selenium
-twilio
-undetected-chromedriver  # Or the version you're working with
-gunicorn
-pyvirtualdisplay
+Flask==2.0.1
+twilio==7.15.3
+selenium==4.1.0
+gunicorn==20.1.0
+redis==4.3.4
+rq==1.11.1
+psycopg2-binary==2.9.3
+python-dotenv==0.20.0
