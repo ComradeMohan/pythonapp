@@ -1,22 +1,18 @@
 import time
+import os
 from flask import Flask, render_template, request
 from twilio.rest import Client
-from selenium import webdriver
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-import chromedriver_autoinstaller
 from selenium.webdriver.support.ui import Select
 
-# Automatically install the correct version of ChromeDriver
-chromedriver_autoinstaller.install()
-
-# Set up Flask
+# Flask app
 app = Flask(__name__)
 
 # Function to send WhatsApp notification
 def send_whatsapp_notification(course_name, phone_number, vacancies):
     account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
-    auth_token = os.environ.get("TWILIO_AUTH_TOKEN")  # Your Twilio Auth Token
+    auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
     from_whatsapp_number = "whatsapp:+14155238886"
     to_whatsapp_number = f"whatsapp:+91{phone_number}"
 
@@ -27,39 +23,28 @@ def send_whatsapp_notification(course_name, phone_number, vacancies):
         from_=from_whatsapp_number,
         to=to_whatsapp_number
     )
-
     print(f"WhatsApp message sent to {to_whatsapp_number}: {message.body}")
 
-# Function to login to the website
+# Login to ARMS
 def login(driver):
     driver.get("https://arms.sse.saveetha.com")
-    time.sleep(2)  # Wait for page to load
+    time.sleep(2)
 
-    username = driver.find_element(By.ID, "txtusername")
-    password = driver.find_element(By.ID, "txtpassword")
-    login_button = driver.find_element(By.ID, "btnlogin")
+    driver.find_element(By.ID, "txtusername").send_keys("192210400")
+    driver.find_element(By.ID, "txtpassword").send_keys("Mrcreddy@2005")
+    driver.find_element(By.ID, "btnlogin").click()
+    time.sleep(1)
 
-    username.send_keys("192210400")  # Replace with your username
-    password.send_keys("Mrcreddy@2005")  # Replace with your password
-    login_button.click()
-
-    time.sleep(1)  # Wait for login process to complete
-
-# Function to go to the enrollment page
 def go_to_enrollment_page(driver):
     driver.get("https://arms.sse.saveetha.com/StudentPortal/Enrollment.aspx")
-    time.sleep(1)  # Wait for the enrollment page to load
+    time.sleep(1)
 
-# Function to select a slot for course enrollment
 def select_slot(driver, slot_letter):
-    slot_number = ord(slot_letter.upper()) - 64  # Convert letter to number (A=1, B=2, ..., Z=26)
-
+    slot_number = ord(slot_letter.upper()) - 64
     slot_dropdown = Select(driver.find_element(By.ID, "cphbody_ddlslot"))
-    slot_dropdown.select_by_value(str(slot_number))  # Select by value (1 for Slot A, etc.)
+    slot_dropdown.select_by_value(str(slot_number))
+    time.sleep(1)
 
-    time.sleep(1)  # Wait for any potential loading after selection
-
-# Function to check for the course in the table
 def check_for_course(driver, course_name):
     time.sleep(1)
     rows = driver.find_elements(By.CSS_SELECTOR, "#tbltbodyslota tr")
@@ -72,53 +57,45 @@ def check_for_course(driver, course_name):
             if course_name in label.text:
                 vacancies = int(badge.text)
                 if vacancies > 0:
-                    radio_button = row.find_element(By.CSS_SELECTOR, "input[type='radio']")
-                    radio_button.click()
+                    row.find_element(By.CSS_SELECTOR, "input[type='radio']").click()
                     print(f"Course {course_name} selected. Vacancies available: {vacancies}")
-                    return True, vacancies  # Return both True and the vacancies count
+                    return True, vacancies
                 else:
                     print(f"Course '{course_name}' is found but has no vacancies.")
                     return False, 0
-
     print(f"Course '{course_name}' not found.")
     return False, 0
 
-# Main function to check for the course and handle actions
+# Main logic
 def main(course_name, slot, phone_number):
-    # Initialize WebDriver
-    options = Options()
-    options.add_argument("--headless=new")  # Updated headless mode
-    options.add_argument("--disable-gpu")
+    options = uc.ChromeOptions()
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080") # Fixes potential memory issues
+    options.add_argument("--window-size=1920,1080")
 
-    driver = webdriver.Chrome(options=options)
-    
+    driver = uc.Chrome(options=options)
+
     login(driver)
     go_to_enrollment_page(driver)
 
-    refresh_count = 0  # Initialize refresh counter
-
-    while True:  # Keep checking until manually stopped
-        select_slot(driver, slot)  # Select the slot passed by user
-
+    refresh_count = 0
+    while True:
+        select_slot(driver, slot)
         if driver.current_url == "https://arms.sse.saveetha.com/StudentPortal/Enrollment.aspx":
             found, vacancies = check_for_course(driver, course_name)
             if found:
-                print(f"Course {course_name} found! Notifications will be sent +91{phone_number} vacancies = {vacancies}")
-                send_whatsapp_notification(course_name, phone_number,vacancies)  # Send WhatsApp notification
-                break  # Exit loop if course is found
+                send_whatsapp_notification(course_name, phone_number, vacancies)
+                break
 
-        refresh_count += 1  # Increment refresh count
-        print(f"Course not found or full. Reloading... (Attempt #{refresh_count})")
-        driver.refresh()  # Refresh and check again
-
-        time.sleep(2)  # Wait before checking again
+        refresh_count += 1
+        print(f"Course not found. Refreshing... Attempt #{refresh_count}")
+        driver.refresh()
+        time.sleep(2)
 
     driver.quit()
 
-# Define routes and views for Flask app
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -128,9 +105,9 @@ def enroll():
     course_name = request.form['course_name']
     slot = request.form['slot']
     phone_number = request.form['phone_number']
-    
+
     main(course_name, slot, phone_number)
     return f"Enrollment for course {course_name} is successful! Check your WhatsApp."
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000)
