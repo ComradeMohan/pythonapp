@@ -1,6 +1,6 @@
 flask
 selenium
 twilio
-undetected-chromedriver==3.1.4  # Or the version you're working with
+undetected-chromedriver  # Or the version you're working with
 gunicorn
 pyvirtualdisplay
