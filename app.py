@@ -74,6 +74,9 @@ def main(course_name, slot, phone_number):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
+    # Set the binary location for Render's Chromium
+    options.binary_location = "/opt/render/project/.chromium-browser/bin/chromium"
+
     driver = uc.Chrome(options=options)
 
     login(driver)
