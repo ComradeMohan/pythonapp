@@ -78,7 +78,13 @@ def main(course_name, slot, phone_number):
     options.binary_location = "/opt/render/project/.chromium-browser/bin/chromium"
 
     driver = uc.Chrome(options=options)
+    chromium_path = "/opt/render/project/.chromium-browser/bin/chromium"
 
+# Check if the file exists
+    if os.path.exists(chromium_path):
+        print(f"Chromium found at {chromium_path}")
+    else:
+        print(f"Chromium not found at {chromium_path}")
     login(driver)
     go_to_enrollment_page(driver)
 
