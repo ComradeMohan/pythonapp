@@ -15,8 +15,8 @@ app = Flask(__name__)
 
 # Function to send WhatsApp notification
 def send_whatsapp_notification(course_name, phone_number, vacancies):
-    account_sid = "TWILIO_ACCOUNT_SID"  # Your Twilio Account SID
-    auth_token = "TWILIO_AUTH_TOKEN"   # Your Twilio Auth Token
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+    auth_token = os.environ.get("TWILIO_AUTH_TOKEN")  # Your Twilio Auth Token
     from_whatsapp_number = "whatsapp:+14155238886"
     to_whatsapp_number = f"whatsapp:+91{phone_number}"
 
