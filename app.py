@@ -111,6 +111,5 @@ def enroll():
 
     main(course_name, slot, phone_number)
     return f"Enrollment for course {course_name} is successful! Check your WhatsApp."
-
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
