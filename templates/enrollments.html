@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment Requests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .pending {
+            background-color: #FFF3CD;
+            color: #856404;
+        }
+
+        .running {
+            background-color: #D1ECF1;
+            color: #0C5460;
+        }
+
+        .completed {
+            background-color: #D4EDDA;
+            color: #155724;
+        }
+
+        .failed {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enrollment Requests</h1>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Course Name</th>
+                    <th>Slot</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Completed</th>
+                    <th>Vacancies</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in enrollments %}
+                <tr>
+                    <td>{{ enrollment.id }}</td>
+                    <td>{{ enrollment.course_name }}</td>
+                    <td>{{ enrollment.slot }}</td>
+                    <td>+91{{ enrollment.phone_number }}</td>
+                    <td>
+                        <span class="status {{ enrollment.status }}">
+                            {{ enrollment.status }}
+                        </span>
+                    </td>
+                    <td>{{ enrollment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if enrollment.completed_at %}
+                            {{ enrollment.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if enrollment.vacancies %}
+                            {{ enrollment.vacancies }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
