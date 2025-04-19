@@ -1,7 +1,6 @@
 flask
 selenium
 twilio
-chromedriver-autoinstaller
+undetected-chromedriver==3.1.4  # Or the version you're working with
 gunicorn
 pyvirtualdisplay
-undetected-chromedriver
