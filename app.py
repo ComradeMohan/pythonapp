@@ -2,9 +2,10 @@ import time
 import os
 from flask import Flask, render_template, request
 from twilio.rest import Client
-import undetected_chromedriver as uc
+import undetected_chromedriver.v2 as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from threading import Thread
 
 # Flask app
 app = Flask(__name__)
@@ -76,15 +77,17 @@ def main(course_name, slot, phone_number):
     
     # Set the path to the Chromium binary on Render's environment
     options.binary_location = "/opt/render/project/.chromium-browser/bin/chromium"
-
-    driver = uc.Chrome(options=options)
     chromium_path = "/opt/render/project/.chromium-browser/bin/chromium"
 
-# Check if the file exists
+    # Explicitly set the browser executable path
     if os.path.exists(chromium_path):
         print(f"Chromium found at {chromium_path}")
     else:
         print(f"Chromium not found at {chromium_path}")
+        return
+
+    driver = uc.Chrome(options=options, browser_executable_path=chromium_path)
+    
     login(driver)
     go_to_enrollment_page(driver)
 
@@ -104,6 +107,11 @@ def main(course_name, slot, phone_number):
 
     driver.quit()
 
+# Background task for enrollment
+def run_enrollment_task(course_name, slot, phone_number):
+    # Running the main function in a separate thread
+    enrollment_thread = Thread(target=main, args=(course_name, slot, phone_number))
+    enrollment_thread.start()
 
 # Routes
 @app.route('/')
@@ -116,7 +124,10 @@ def enroll():
     slot = request.form['slot']
     phone_number = request.form['phone_number']
 
-    main(course_name, slot, phone_number)
+    # Run the enrollment task in the background
+    run_enrollment_task(course_name, slot, phone_number)
+    
     return f"Enrollment for course {course_name} is successful! Check your WhatsApp."
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
