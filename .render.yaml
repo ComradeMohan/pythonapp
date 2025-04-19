@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: course-enroller
+    env: python
+    plan: free
+    buildCommand: "docker build -t course-enroller ."
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT app:app"
