@@ -3,3 +3,4 @@ selenium
 twilio
 chromedriver-autoinstaller
 gunicorn
+pyvirtualdisplay
